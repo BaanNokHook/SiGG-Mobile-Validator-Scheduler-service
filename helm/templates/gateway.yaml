@@ -1,0 +1,16 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: {{ include "helm.release.name" . }}-gw
+spec:
+  selector:
+    gateway: c01-ingressgateway
+  servers:
+  - hosts:
+  {{- range .Values.gateway.hosts}}
+    - {{ . | quote }}
+  {{- end}}
+    port:
+      name: http
+      number: 80
+      protocol: HTTP

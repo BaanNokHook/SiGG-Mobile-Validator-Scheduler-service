@@ -1,0 +1,13 @@
+{{- if .Values.pvc.enable -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "helm.release.name" . }}-pvc
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.pvc.resources.requests.storage }}
+  storageClassName: {{ .Values.pvc.storageClassName }}
+{{- end -}}

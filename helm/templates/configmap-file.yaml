@@ -1,0 +1,10 @@
+{{- if .Values.configmapFile.enable }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.configmapFile.name }}
+data: 
+  {{- .Values.configmapFile.namefile | nindent 2 }}: |
+    {{- .Values.configmapFile.data | nindent 4 }}
+{{- end }}

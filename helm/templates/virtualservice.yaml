@@ -1,0 +1,25 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ include "helm.release.name" . }}-vs
+spec:
+  gateways:
+  - {{ include "helm.release.name" . }}-gw
+  hosts:
+  {{- range .Values.gateway.hosts}}
+    - {{ . | quote }}
+  {{- end}}
+  http:
+  - name: {{ include "helm.release.name" . }}
+    match:
+    - uri:
+        prefix: {{ .Values.virtualService.config.uriPrefix }}
+    {{- if .Values.virtualService.config.isRewriteUri }}
+    rewrite:
+      uri: {{.Values.virtualService.config.uriRewrite }}
+    {{- end }}
+    route:
+    - destination:
+        host: {{ include "helm.release.name" . }}-svc
+        port:
+          number: {{ .Values.deployment.containerPort }}

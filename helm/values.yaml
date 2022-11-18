@@ -1,0 +1,109 @@
+deployment:
+  labels: 
+    app: mobile-validator-register-service
+    version: 1.0.0
+    component: service
+    part-of: transaction-gateway
+    managed-by: helm
+    tier: backend
+    environment: dev
+  image: ""
+  imagePullSecrets: "gitlab-transaction-gateway-cr"
+  containerPort: 8005
+  env: 
+    - name: APP_NAME
+      value: mobile-validator-register-service
+    - name: APP_VERSION
+      value: 1.0.0
+    - name: HTTP_PORT
+      value: "8005"
+    - name: LOG_LEVEL
+      value: debug
+    - name: MONGO_URI
+      value: mongodb://device-register:741W36Cz&jtu@10.120.11.217:27017/?authSource=device-register-services
+    - name: MONGO_DB
+      value: device-register-services
+    - name: MONGO_DEVICE_COLLECTION_NAME
+      value: devices
+    - name: REDIS_ADDR
+      value: nextclan-redis-headless.nextclan:6379
+    - name: REDIS_PASSWORD
+      value: "NextClanxxxyyyzzz8"
+    - name: REDIS_DEVICE_DB
+      value: "1"
+    - name: REDIS_SCHEDULE_DB
+      value: "3"
+    - name: JOB_RUN
+      value: "true"
+    - name: JOB_NAME
+      value: update_mobile_validator_status
+    - name: JOB_NAMESPACE
+      value: validator_register_app_namespace
+    - name: JOB_CRON
+      value: "0 */1 * * *"
+    - name: JOB_DEVICE_OFFLINE_THRESHOLD_MINUTE
+      value: "1"
+    - name: JOB_DEVICE_VALIDATE_THRESHOLD_MINUTE
+      value: "60"
+    - name: PUSHER_BEAM_INSTANCE_ID
+      value: eb3d4c21-3ff6-4378-8117-f0acf095d6b3
+    - name: PUSHER_BEAM_SECRET_KEY
+      value: 5B7C86F49099A5132BCA42A60BD0B61A9144A835C81CCD483290C5E21BB9B4E8
+
+  resources:
+  requests:
+    memory: "128Mi"
+    cpu: "0.5"
+  limits:
+    memory: "512Mi"
+    cpu: "1"
+  volumeMounts: []
+    # - name: confpath
+    #   mountPath: /app/product/config/prod-app-configuration.json
+    #   subPath: prod-app-configuration.json
+  volumes: []
+    # - name: confpath
+    #   configMap:
+    #     name: product-config
+  readinessPath: /healthz
+  livenessPath: /healthz
+
+pvc:
+  enable: false
+  # resources:
+  #   requests:
+  #     storage: 10Gi
+  # storageClassName: nfs-client
+
+configMaps: []
+  # - name: name-of-config
+  #   data:
+  #     somefile.json: |
+  #       {
+  #         name: test,
+  #         otherkey: othervalue
+  #       }
+
+## Config-file (optional)
+## Setfile from helm option command
+## Support only one file config
+configmapFile:
+  enable: false
+  # name: config-file
+  # namefile: "config.json"
+  # data: "" 
+
+hpa:
+  enable: false
+  minReplicas: 1
+  maxReplicas: 3
+
+gateway:
+  hosts:
+    - "*"
+
+virtualService:
+  config:
+      uriPrefix: /api/v1/devices/
+      isRewriteUri: true
+      uriRewrite: /v1/devices/

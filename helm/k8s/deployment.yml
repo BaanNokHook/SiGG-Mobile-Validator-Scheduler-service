@@ -1,0 +1,120 @@
+---
+# Source: nextclan-wallet-service/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: mobile-validator-register-service
+  name: mobile-validator-register-service-svc
+spec:
+  ports:
+  - name: http
+    port: 8005
+  selector:
+    default-app: mobile-validator-register-service
+---
+# Source: nextclan-wallet-service/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mobile-validator-register-service
+  labels:
+    default-app: mobile-validator-register-service
+    app: mobile-validator-register-service
+    component: service
+    environment: dev
+    managed-by: helm
+    part-of: transaction-gateway
+    tier: backend
+    version: 1.0.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      default-app: mobile-validator-register-service
+  template:
+    metadata:
+      labels:
+        default-app: mobile-validator-register-service
+    spec:
+      containers:
+      - name: mobile-validator-register-service
+        image: registry.gitlab.com/nextdb-project/digital-reality-foundation/mobile-validator/validator-register/mobile-validator-scheduler-service:latest
+        env:
+        - name: APP_NAME
+          value: mobile-validator-register-service
+        - name: APP_VERSION
+          value: 1.0.0
+        - name: HTTP_PORT
+          value: "8005"
+        - name: LOG_LEVEL
+          value: debug
+        - name: MONGO_URI
+          value: mongodb://device-register:741W36Cz&jtu@backend-mobile-register-db-service:27017/?authSource=device-register-services
+        - name: MONGO_DB
+          value: device-register-services
+        - name: MONGO_DEVICE_COLLECTION_NAME
+          value: devices
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8005       
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8005
+          initialDelaySeconds: 10
+          periodSeconds: 20
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8005
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "0.5"
+          limits:
+            memory: "512Mi"
+            cpu: "1"
+      imagePullSecrets:
+        - name: gitlab-transaction-gateway-cr
+---
+# Source: nextclan-wallet-service/templates/gateway.yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: mobile-validator-register-service-gw
+spec:
+  selector:
+    gateway: c01-ingressgateway
+  servers:
+  - hosts:
+    - "*"
+    port:
+      name: http
+      number: 80
+      protocol: HTTP
+---
+# Source: nextclan-wallet-service/templates/virtualservice.yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: mobile-validator-register-service-vs
+spec:
+  gateways:
+  - mobile-validator-register-service-gw
+  hosts:
+    - "*"
+  http:
+  - name: mobile-validator-register-service
+    match:
+    - uri:
+        prefix: /api/v1/devices/
+    rewrite:
+      uri: /v1/devices/
+    route:
+    - destination:
+        host: mobile-validator-register-service-svc
+        port:
+          number: 8005

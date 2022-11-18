@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: {{ include "helm.release.name" . }}
+  name: {{ include "helm.release.name" . }}-svc
+spec:
+  ports:
+  - name: http
+    port: {{ .Values.deployment.containerPort }}
+  selector:
+    default-app: {{ include "helm.release.name" . }}

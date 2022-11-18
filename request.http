@@ -1,0 +1,29 @@
+@apiLocalURL =  http://localhost:8000/v1
+@apiStagingURL = https://wallet-dev.adldigitalservice.com/api/v1
+
+@apiUrl = {{apiLocalURL}}
+
+### Register Device
+
+POST {{apiUrl}}/devices
+content-type: application/json
+
+{
+    "UserId":"abc1",
+    "DeviceId":"12-213-312-3",
+    "PublicKey":"0x02832380947u9823ujrufhiwbhrfwbdnjksjnf2"
+}
+
+### Update Device
+POST {{apiUrl}}/devices/12-213-312-3/status
+content-type: application/json
+
+{}
+
+### Auth
+POST {{apiUrl}}/devices/auth
+content-type: application/json
+
+{
+    "userId": "agi101"
+}
